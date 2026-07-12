@@ -1,0 +1,86 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int      @id @default(autoincrement())
+  name     String
+  email    String   @unique
+  password String
+  role     String   @default("operator")
+  createdAt DateTime @default(now())
+  orders   Order[]
+  messages Message[]
+  statusChanges StatusHistory[]
+  productionEntries ProductionEntry[]
+}
+
+model Order {
+  id          Int      @id @default(autoincrement())
+  client      String
+  model       String
+  quantity    Int
+  color       String
+  deadline    String
+  price       Float    @default(0)
+  status      String   @default("pending")
+  notes       String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  messages    Message[]
+  statusHistory StatusHistory[]
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  text      String
+  createdAt DateTime @default(now())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  orderId   Int
+  order     Order    @relation(fields: [orderId], references: [id])
+}
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  name        String
+  category    String   @default("")
+  description String   @default("")
+  price       Float
+  image       String   @default("")
+  status      String   @default("active")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model StatusHistory {
+  id        Int      @id @default(autoincrement())
+  from      String
+  to        String
+  createdAt DateTime @default(now())
+  orderId   Int
+  order     Order    @relation(fields: [orderId], references: [id])
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model ProductionEntry {
+  id        Int      @id @default(autoincrement())
+  date      DateTime
+  client    String
+  model     String
+  quantity  Int
+  color     String   @default("")
+  price     Float    @default(0)
+  notes     String   @default("")
+  createdAt DateTime @default(now())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+}
