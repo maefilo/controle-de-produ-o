@@ -15,6 +15,7 @@ type ProductionEntry = {
   price: number;
   notes: string;
   createdAt: string;
+  userId: number;
   user: { name: string };
 };
 
@@ -210,7 +211,9 @@ export default function ProductionPage() {
                           <span className="text-lg font-bold text-blue-600">{entry.quantity}</span>
                           {entry.price > 0 && <p className="text-xs text-gray-500">R$ {(entry.price * entry.quantity).toFixed(2)}</p>}
                         </div>
-                        <button onClick={() => handleDelete(entry.id)} className="text-gray-400 hover:text-red-600 text-sm">✕</button>
+                        {user && (entry.userId === user.id || user.role === "admin") && (
+                          <button onClick={() => handleDelete(entry.id)} className="text-gray-400 hover:text-red-600 text-sm">✕</button>
+                        )}
                       </div>
                     </div>
                   ))}

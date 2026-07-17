@@ -4,10 +4,12 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { showToast } from "@/components/Toaster";
+import { useAuth } from "@/context/AuthContext";
 
 export default function EditProductPage() {
   const params = useParams();
   const router = useRouter();
+  const { user, token } = useAuth();
   const [form, setForm] = useState({ name: "", category: "", description: "", price: "", image: "" });
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -15,6 +17,11 @@ export default function EditProductPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (user && user.role !== "admin") {
+      showToast("Apenas administradores podem editar produtos", "error");
+      router.push("/catalog");
+      return;
+    }
     fetch(`/api/products/${params.id}`)
       .then((r) => r.json())
       .then((data) => {
@@ -22,7 +29,7 @@ export default function EditProductPage() {
         setLoading(false);
       })
       .catch(() => { showToast("Erro ao carregar produto", "error"); router.push("/catalog"); });
-  }, [params.id]);
+  }, [params.id, user]);
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -43,7 +50,7 @@ export default function EditProductPage() {
     try {
       const res = await fetch(`/api/products/${params.id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", authorization: `Bearer ${token}` },
         body: JSON.stringify({ ...form, price: Number(form.price) }),
       });
       if (!res.ok) throw new Error("Erro ao salvar");
@@ -54,7 +61,10 @@ export default function EditProductPage() {
   }
 
   async function handleDelete() {
-    await fetch(`/api/products/${params.id}`, { method: "DELETE" });
+    await fetch(`/api/products/${params.id}`, {
+      method: "DELETE",
+      headers: { authorization: `Bearer ${token}` },
+    });
     showToast("Produto excluído!");
     router.push("/catalog");
   }

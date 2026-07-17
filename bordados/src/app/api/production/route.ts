@@ -68,6 +68,12 @@ export async function DELETE(req: Request) {
   const id = searchParams.get("id");
   if (!id) return NextResponse.json({ error: "ID obrigatório" }, { status: 400 });
 
+  const entry = await prisma.productionEntry.findUnique({ where: { id: Number(id) } });
+  if (!entry) return NextResponse.json({ error: "Registro não encontrado" }, { status: 404 });
+  if (entry.userId !== user.id && user.role !== "admin") {
+    return NextResponse.json({ error: "Você não tem permissão para excluir este registro" }, { status: 403 });
+  }
+
   await prisma.productionEntry.delete({ where: { id: Number(id) } });
   return NextResponse.json({ ok: true });
 }
