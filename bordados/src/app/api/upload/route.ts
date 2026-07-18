@@ -28,7 +28,8 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ url: result.secure_url });
-  } catch {
-    return NextResponse.json({ error: "Erro no upload" }, { status: 500 });
+  } catch (e: any) {
+    console.error("Upload error:", e);
+    return NextResponse.json({ error: "Erro no upload", details: e?.message }, { status: 500 });
   }
 }
